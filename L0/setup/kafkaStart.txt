@@ -1,0 +1,7 @@
+cd TO KAFKA FOLDER
+
+// START ZOOKEEPER
+.\bin\windows\zookeeper-server-start.bat .\config\zookeeper.properties. 
+
+// START KAFKA SERVER
+.\bin\windows\kafka-server-start.bat .\config\server.properties

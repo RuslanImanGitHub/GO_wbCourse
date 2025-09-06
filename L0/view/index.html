@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Информация о заказе</title>
+</head>
+
+<body>
+  <header>
+    <h1>Информация о заказе</h1>
+  </header>
+  <div class="structure-block">
+    <input type="text" id="searchInput" placeholder="Введите ключ order_uid" />
+    <button onclick="GetOrderById()" id="searchButton">Поиск</button>
+    <button onclick="PostOrders()" id="sendButton">Создать</button>
+    <p id="errorMessage" class="error-message"></p>
+  </div>
+
+  <div class="answer-block">
+    <div class="info-block">
+      <div class="info-block-title">
+        <h2>Order</h2>
+      </div>
+      <table id="order">
+        <tr>
+          <th id="order_uid">order_uid</th>
+          <th id="track_number">track_number</th>
+          <th id="entry">entry</th>
+          <th id="delivery_id">delivery_id</th>
+          <th id="locale">locale</th>
+          <th id="internal_signature">internal_signature</th>
+          <th id="customer_id">customer_id</th>
+          <th id="delivery_service">delivery_service</th>
+          <th id="shardkey">shardkey</th>
+          <th id="sm_id">sm_id</th>
+          <th id="date_created">date_created</th>
+          <th id="oof_shard">oof_shard</th>
+        </tr>
+        <tr>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+        </tr>
+      </table>
+    </div>
+    <div class="info-block">
+      <div class="info-block-title">
+        <h2>Delivery</h2>
+      </div>
+      <table id="delivery">
+        <tr>
+          <th id="delivery_id">delivery_id</th>
+          <th id="name">name</th>
+          <th id="phone">phone</th>
+          <th id="zip">zip</th>
+          <th id="city">city</th>
+          <th id="address">address</th>
+          <th id="region">region</th>
+          <th id="email">email</th>
+        </tr>
+        <tr>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="info-block">
+      <div class="info-block-title">
+        <h2>Payment</h2>
+      </div>
+      <table id="payment">
+        <tr>
+          <th id="pay_transaction">transaction</th>
+          <th id="request_id">request_id</th>
+          <th id="currency">currency</th>
+          <th id="provider">provider</th>
+          <th id="amount">amount</th>
+          <th id="payment_dt">payment_dt</th>
+          <th id="bank">bank</th>
+          <th id="delivery_cost">delivery_cost</th>
+          <th id="goods_total">goods_total</th>
+          <th id="custom_fee">custom_fee</th>
+        </tr>
+        <tr>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+        </tr>
+      </table>
+    </div>
+    <div class="info-block">
+      <div class="info-block-title">
+        <h2>OrderItems</h2>
+      </div>
+      <table id="tableItems">
+        <tr>
+          <th id="chrt_id">chrt_id</th>
+          <th id="track_number">track_number</th>
+          <th id="price">price</th>
+          <th id="rid">rid</th>
+          <th id="name">name</th>
+          <th id="sale">sale</th>
+          <th id="size">size</th>
+          <th id="total_price">total_price</th>
+          <th id="nm_id">nm_id</th>
+          <th id="brand">brand</th>
+          <th id="status">status</th>
+        </tr>
+        <tr>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+  <script src="/static/script.js"></script>
+</body>
+
+</html>
