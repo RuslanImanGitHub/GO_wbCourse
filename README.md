@@ -22,5 +22,5 @@
 
 ## Схема проекта
 
-![alt text](https://github.com/RuslanImanGitHub/GO_wbCourse/blob/main/схема.png?raw=true)
+![alt text](https://github.com/RuslanImanGitHub/GO_wbCourse/blob/main/L0/Схема.png?raw=true)
 
