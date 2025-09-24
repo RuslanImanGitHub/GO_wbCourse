@@ -6,7 +6,7 @@
       "user": "testUser",
       "password": "password",
       "dbname": "wbCourseL0",
-      "connectionTimeout": 5,
+      "connectionTimeout": 10,
     },
   "kafka":
     {

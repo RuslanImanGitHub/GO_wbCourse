@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/spf13/viper"
 )
 
 type Client interface {
@@ -20,16 +21,16 @@ type Client interface {
 
 func NewClient(ctx context.Context) (pool *pgxpool.Pool, err error) {
 	var (
-		host     = "localhost"
-		port     = "5432"
-		user     = "testUser"
-		password = "password"
-		dbname   = "wbCourseL0"
+		host     = viper.GetViper().GetString("postgreConfig.host")
+		port     = viper.GetViper().GetString("postgreConfig.port")
+		user     = viper.GetViper().GetString("postgreConfig.user")
+		password = viper.GetViper().GetString("postgreConfig.password")
+		dbname   = viper.GetViper().GetString("postgreConfig.dbname")
 	)
 
 	connstr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", user, password, host, port, dbname)
 
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, viper.GetViper().GetDuration("postgreConfig.connectionTimeout")*time.Second)
 	defer cancel()
 
 	pool, err = pgxpool.Connect(ctx, connstr)

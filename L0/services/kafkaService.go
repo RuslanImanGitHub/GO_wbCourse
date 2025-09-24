@@ -18,6 +18,7 @@ import (
 	paymentService "L0/models/payment/service"
 	"L0/pkg/dbClient/postgresql"
 	"context"
+	"fmt"
 	"log"
 	"math/rand"
 	"os"
@@ -27,6 +28,7 @@ import (
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -65,7 +67,7 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
-	brokers := []string{"localhost:9092"}
+	brokers := []string{fmt.Sprintf("%s:%s", viper.GetString("kafka.host"), viper.GetString("kafka.kafkaPort"))}
 	consumer, err := sarKaf.NewConsumer(brokers)
 	if err != nil {
 		log.Fatal("Failed to create KafkaConsumer")
