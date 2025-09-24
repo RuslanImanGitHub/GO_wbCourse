@@ -28,7 +28,6 @@ import (
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/spf13/viper"
 )
 
 var (
@@ -67,7 +66,7 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
-	brokers := []string{fmt.Sprintf("%s:%s", viper.GetString("kafka.host"), viper.GetString("kafka.kafkaPort"))}
+	brokers := []string{os.Getenv("KAFKA_BROKERS")}
 	consumer, err := sarKaf.NewConsumer(brokers)
 	if err != nil {
 		log.Fatal("Failed to create KafkaConsumer")
@@ -153,7 +152,7 @@ func postFakeOrder(id string) (interface{}, error) {
 		return 0, err
 	}
 
-	return "Generated an order", nil
+	return fmt.Sprint("Generated an order - ", order.Order_uid), nil
 }
 
 func getOrderById(id string) (interface{}, error) {

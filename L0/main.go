@@ -17,16 +17,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/hashicorp/golang-lru/v2/expirable"
-	"github.com/spf13/viper"
 )
 
 func main() {
-	//Config
-	if err := initConfig(); err != nil {
-		log.Fatalf("Error initializing config: %s", err.Error())
-	}
 
 	ctx := context.Background()
 
@@ -52,8 +48,8 @@ func main() {
 	log.Println("Connected to DB")
 
 	//Cache
-	cache := expirable.NewLRU[string, order.Order](viper.GetInt("cache.objsInCache"), nil, 0)
-	cacheOrd, err := fullS.FindN(ctx, pool, viper.GetInt("cache.cacheBuffer"))
+	cache := expirable.NewLRU[string, order.Order](1000, nil, 0)
+	cacheOrd, err := fullS.FindN(ctx, pool, 100)
 	if err != nil {
 		log.Println("Failed to fill cache")
 
@@ -64,16 +60,16 @@ func main() {
 	}
 
 	//kafka controller
-	brokers := []string{fmt.Sprintf("%s:%s", viper.GetString("kafka.host"), viper.GetString("kafka.kafkaPort"))}
+	brokers := []string{os.Getenv("KAFKA_BROKERS")}
 	consumer, err := sarKaf.NewConsumer(brokers)
 	if err != nil {
-		log.Fatal("Failed to create KafkaConsumer")
+		log.Fatal("Failed to create KafkaConsumer", err)
 	}
 	defer consumer.Close()
 
 	producer, err := sarKaf.NewProducer(brokers)
 	if err != nil {
-		log.Fatal("Failed to create KafkaProducer")
+		log.Fatal("Failed to create KafkaProducer", err)
 	}
 	defer producer.Close()
 
@@ -89,10 +85,4 @@ func main() {
 	}
 
 	fmt.Println("App started successfully!")
-}
-
-func initConfig() error {
-	viper.AddConfigPath("configs")
-	viper.SetConfigName("config")
-	return viper.ReadInConfig()
 }

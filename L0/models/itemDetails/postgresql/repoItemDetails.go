@@ -17,7 +17,7 @@ type repository struct {
 }
 
 func (r *repository) Create(ctx context.Context, item *itemdetails.ItemDetails) (err error) {
-	q := `INSERT INTO OrderItems (track_number, price, rid,
+	q := `INSERT INTO L0.OrderItems (track_number, price, rid,
 										item_name, sale, item_size,
 										totaL_PRICE, nm_id, brand,
 										status)
@@ -49,7 +49,7 @@ func (r *repository) FindAllFromOrder(ctx context.Context, order order.Order) ([
 	query := `SELECT oi.chrt_id, oi.track_number, oi.price, oi.rid,
 				 	 oi.item_name, oi.sale, oi.item_size, oi.total_PRICE,
 					 oi.nm_id, oi.brand, oi.status
-			  FROM OrderItems oi 
+			  FROM L0.OrderItems oi 
 			  WHERE oi.track_number = $1`
 	rows, err := r.client.Query(ctx, query, order.Track_number)
 	if err != nil {

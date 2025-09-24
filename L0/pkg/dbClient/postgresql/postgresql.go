@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/spf13/viper"
 )
 
 type Client interface {
@@ -21,16 +21,16 @@ type Client interface {
 
 func NewClient(ctx context.Context) (pool *pgxpool.Pool, err error) {
 	var (
-		host     = viper.GetViper().GetString("postgreConfig.host")
-		port     = viper.GetViper().GetString("postgreConfig.port")
-		user     = viper.GetViper().GetString("postgreConfig.user")
-		password = viper.GetViper().GetString("postgreConfig.password")
-		dbname   = viper.GetViper().GetString("postgreConfig.dbname")
+		host     = os.Getenv("POSTGRES_HOST")
+		port     = os.Getenv("POSTGRES_PORT")
+		user     = os.Getenv("POSTGRES_USER")
+		password = os.Getenv("POSTGRES_PASSWORD")
+		dbname   = os.Getenv("POSTGRES_DB")
 	)
 
 	connstr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", user, password, host, port, dbname)
 
-	ctx, cancel := context.WithTimeout(ctx, viper.GetViper().GetDuration("postgreConfig.connectionTimeout")*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	pool, err = pgxpool.Connect(ctx, connstr)

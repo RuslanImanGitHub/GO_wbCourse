@@ -17,7 +17,7 @@ type repository struct {
 
 // Create implements storage.Repository.
 func (r *repository) Create(ctx context.Context, order *order.Order) error {
-	q := `INSERT INTO orders (order_uid, track_number, entry,
+	q := `INSERT INTO L0.Orders (order_uid, track_number, entry,
 	 							delivery_id, locale, internal_signature,
 								customer_id, delivery_service, shard_key,
 								sm_id, date_created, oof_shard)
@@ -52,7 +52,7 @@ func (r *repository) FindAll(ctx context.Context) ([]order.Order, error) {
 							 a.locale, a.internal_signature,
 							 a.customer_id, a.delivery_service, a.shard_key,
 							 a.sm_id, a.date_created, a.oof_shard 
-					  FROM Orders a`
+					  FROM L0.Orders a`
 	rows, err := r.client.Query(ctx, q)
 	if err != nil {
 		return nil, err
@@ -75,7 +75,7 @@ func (r *repository) FindN(ctx context.Context, n int) ([]order.Order, error) {
 							 a.locale, a.internal_signature,
 							 a.customer_id, a.delivery_service, a.shard_key,
 							 a.sm_id, a.date_created, a.oof_shard 
-					  FROM Orders a
+					  FROM L0.Orders a
 					  LIMIT $1`
 	rows, err := r.client.Query(ctx, q, n)
 	if err != nil {
@@ -101,7 +101,7 @@ func (r *repository) FindOne(ctx context.Context, id string) (order.Order, error
 							 a.locale, a.internal_signature,
 							 a.customer_id, a.delivery_service, a.shard_key,
 							 a.sm_id, a.date_created, a.oof_shard 
-					  FROM Orders a
+					  FROM L0.Orders a
 					  WHERE a.order_uid = $1`
 
 	rows := r.client.QueryRow(ctx, q, id)

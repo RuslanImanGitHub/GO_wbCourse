@@ -1,0 +1,109 @@
+# version: '3.8'
+
+services:
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    ports:
+      - "2181:2181"
+    networks:
+      - app_network
+  kafka:
+    image: bitnami/kafka:latest
+    environment:
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: [ "CMD", "kafka-topics.sh", "--bootstrap-server", "localhost:9092", "--list" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    networks:
+      - app_network
+  postgres:
+    image: postgres:17-alpine
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DBname}
+      POSTGRES_USER: ${DBuser}
+      POSTGRES_PASSWORD: ${DBpassword}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./setup/SQLscripts.sql:/docker-entrypoint-initdb.d/SQLscripts.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DBuser} -d ${DBname}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+  server:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.server
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_BROKERS: kafka:9092
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: ${DBname}
+      POSTGRES_USER: ${DBuser}
+      POSTGRES_PASSWORD: ${DBpassword}
+      POSTGRES_PORT: ${DBport}
+    volumes:
+      - ./view:/app/view
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app_network
+  service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.service
+    environment:
+      KAFKA_BROKERS: kafka:9092
+      KAFKA_GROUP_ID: message-processor
+      KAFKA_TOPIC: messages
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: ${DBname}
+      POSTGRES_USER: ${DBuser}
+      POSTGRES_PASSWORD: ${DBpassword}
+      POSTGRES_PORT: ${DBport}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app_network
+
+# Том для данных
+volumes:
+  db_data:
+
+
+networks:
+  app_network:
+    driver: bridge

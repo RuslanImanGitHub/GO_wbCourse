@@ -16,7 +16,7 @@ type repository struct {
 }
 
 func (r *repository) Create(ctx context.Context, delivery *deliveryAddress.DeliveryAddress) (delivery_id int, err error) {
-	q := `INSERT INTO Deliveries (delivery_id, order_name, phone, zip, city, address, region, email)
+	q := `INSERT INTO L0.Deliveries (delivery_id, order_name, phone, zip, city, address, region, email)
 		  VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING delivery_id`
 
 	if err = r.client.QueryRow(ctx, q,
@@ -38,7 +38,7 @@ func (r *repository) FindAll(ctx context.Context) ([]deliveryAddress.DeliveryAdd
 	q := `SELECT d.delivery_id,
 				d.order_name, d.phone, d.zip, d.city,
 				d.address, d.region, d.email
-		FROM deliveries d`
+		FROM L0.Deliveries d`
 
 	rows, err := r.client.Query(ctx, q)
 	if err != nil {
@@ -64,7 +64,7 @@ func (r *repository) FindFromId(ctx context.Context, id int) (deliveryAddress.De
 	q := `SELECT d.delivery_id,
 				d.order_name, d.phone, d.zip, d.city,
 				d.address, d.region, d.email
-		FROM Deliveries d
+		FROM L0.Deliveries d
 		WHERE d.delivery_id = $1`
 
 	rows := r.client.QueryRow(ctx, q, id)

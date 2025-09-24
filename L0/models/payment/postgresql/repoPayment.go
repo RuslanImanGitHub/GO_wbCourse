@@ -16,7 +16,7 @@ type repository struct {
 }
 
 func (r *repository) Create(ctx context.Context, payment *payment.Payment) error {
-	q := `INSERT INTO Payments (pay_transaction, request_id, currency,
+	q := `INSERT INTO L0.Payments (pay_transaction, request_id, currency,
 										   provider, amount, payment_dt,
 										   bank, delivery_cost, goods_total,
 										   custom_fee)
@@ -49,7 +49,7 @@ func (r *repository) FindAll(ctx context.Context) ([]payment.Payment, error) {
 			p.amount, p.payment_dt, p.bank, p.delivery_cost,
 			p.goods_total, p.custom_fee
 
-		FROM Payments p`
+		FROM L0.Payments p`
 
 	rows, err := r.client.Query(ctx, q)
 	if err != nil {
@@ -78,7 +78,7 @@ func (r *repository) FindOneFromTransaction(ctx context.Context, transaction str
 			p.amount, p.payment_dt, p.bank, p.delivery_cost,
 			p.goods_total, p.custom_fee
 
-		FROM Payments p 
+		FROM L0.Payments p 
 		WHERE p.pay_transaction = $1`
 	rows := r.client.QueryRow(ctx, q, transaction)
 	err := rows.Scan(&payment.Transaction, &payment.Request_id, &payment.Currency, &payment.Provider,
