@@ -53,7 +53,7 @@ func PushMsg(prod sarama.SyncProducer, msg []byte, topic string) error {
 	return nil
 }
 
-func EndlessServerLoop(prod sarama.SyncProducer, cons sarama.Consumer,
+func ReadMsgLoop(prod sarama.SyncProducer, cons sarama.Consumer,
 	finisherCahn chan struct{}, function func(string) (interface{}, error),
 	reqTopic string, resTopic string) {
 

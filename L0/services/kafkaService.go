@@ -17,6 +17,7 @@ import (
 	paymentRepo "L0/models/payment/postgresql"
 	paymentService "L0/models/payment/service"
 	"L0/pkg/dbClient/postgresql"
+	"L0/validation"
 	"context"
 	"fmt"
 	"log"
@@ -86,8 +87,8 @@ func main() {
 
 	doneChan := make(chan struct{})
 
-	go sarKaf.EndlessServerLoop(kafkaCont.Producer, kafkaCont.Consumer, doneChan, getOrderById, "getOrderById", "resGetOrderById")
-	go sarKaf.EndlessServerLoop(kafkaCont.Producer, kafkaCont.Consumer, doneChan, postFakeOrder, "postOrder", "resPostOrder")
+	go sarKaf.ReadMsgLoop(kafkaCont.Producer, kafkaCont.Consumer, doneChan, getOrderById, "getOrderById", "resGetOrderById")
+	go sarKaf.ReadMsgLoop(kafkaCont.Producer, kafkaCont.Consumer, doneChan, postFakeOrder, "postOrder", "resPostOrder")
 	go func(chan os.Signal, chan struct{}) {
 		<-sigChan
 		log.Println("Service stopped")
@@ -112,19 +113,19 @@ func postFakeOrder(id string) (interface{}, error) {
 	err := gofakeit.Struct(&order)
 	if err != nil {
 		log.Printf("Ошибка генерации: %v\n", err)
-		return order, err
+		return -1, err
 	}
 
 	err = gofakeit.Struct(&delivery)
 	if err != nil {
 		log.Printf("Ошибка генерации: %v\n", err)
-		return order, err
+		return -1, err
 	}
 
 	err = gofakeit.Struct(&payment)
 	if err != nil {
 		log.Printf("Ошибка генерации: %v\n", err)
-		return order, err
+		return -1, err
 	}
 
 	itemsNumber := rnd.Intn(10) + 1
@@ -134,9 +135,14 @@ func postFakeOrder(id string) (interface{}, error) {
 		err = gofakeit.Struct(&item)
 		if err != nil {
 			log.Printf("Ошибка генерации: %v\n", err)
-			return order, err
+			return -1, err
 		}
 		item.Track_number = order.Track_number
+
+		if err = validation.Val.Struct(&item); err != nil {
+			log.Println("ItemOrder failed validation check: ", err)
+			return -1, err
+		}
 		items = append(items, item)
 	}
 
@@ -146,10 +152,15 @@ func postFakeOrder(id string) (interface{}, error) {
 	order.Payment = payment
 	order.Items = items
 
+	if err = validation.Val.Struct(&order); err != nil {
+		log.Printf("Order with uid (%s) failed validation check: %s", order.Order_uid, err)
+		return -1, err
+	}
+
 	err = orderFull.Create(ctx, globalPool, &order, &order.Delivery, &order.Payment, order.Items)
 	if err != nil {
 		log.Println(err)
-		return 0, err
+		return -1, err
 	}
 
 	return fmt.Sprint("Generated an order - ", order.Order_uid), nil
@@ -160,7 +171,7 @@ func getOrderById(id string) (interface{}, error) {
 	result, err := orderFull.FindOne(ctx, globalPool, id)
 	if err != nil {
 		log.Println(err)
-		return 0, err
+		return -1, err
 	}
 	return result, nil
 }

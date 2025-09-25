@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
+	"reflect"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hashicorp/golang-lru/v2/expirable"
@@ -58,8 +59,12 @@ func (cont *Controller) GetOrderById(ctx *gin.Context) {
 		if err != nil {
 			NewHTTPError(ctx, true, err)
 		}
-		fmt.Printf("Записи %s нет в кэше, загружена из БД", order_uid)
-		cont.cache.Add(result.Order_uid, result)
+		if reflect.DeepEqual(result, order.Order{}) {
+			fmt.Println("В БД нет заказа с таким идентификатором - ", order_uid)
+		} else {
+			fmt.Printf("Записи %s нет в кэше, загружена из БД", order_uid)
+			cont.cache.Add(result.Order_uid, result)
+		}
 
 	} else {
 		fmt.Printf("Запись %s есть в кэше", order_uid)
