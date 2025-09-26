@@ -28,7 +28,7 @@ func unique(seq []string) (result []string) {
 	for _, val := range seq {
 		dict[val] = true
 	}
-	for key, _ := range dict {
+	for key := range dict {
 		result = append(result, key)
 	}
 	return result
