@@ -28,6 +28,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"sort"
+	"strconv"
 	"strings"
 	"unicode"
 )
@@ -78,13 +80,13 @@ func parseConfig() sortConfig {
 func main() {
 	config := parseConfig()
 	if config.isMonth && config.isNumeric {
-		RaiseErrorAndStop(errors.New("month and Numeric flags can't be used at the same time"))
+		RaiseErrorAndStop(errors.New("Month and Numeric flags can't be used at the same time"))
 	}
 	if config.isSuffixEnabled && config.isNumeric {
-		RaiseErrorAndStop(errors.New("suffix and Numeric flags can't be used at the same time"))
+		RaiseErrorAndStop(errors.New("Suffix and Numeric flags can't be used at the same time"))
 	}
 	if !config.isTable && config.column != 0 {
-		RaiseErrorAndStop(errors.New("non-Table data and column flags can't be used at the same time"))
+		RaiseErrorAndStop(errors.New("Non-Table data and column flags can't be used at the same time"))
 	}
 
 	var data []string
@@ -102,23 +104,10 @@ func main() {
 	for _, v := range data {
 		dataInTableForm = append(dataInTableForm, strings.Split(v, config.delimiter))
 	}
-	ShowDataTable(dataInTableForm)
+	ShowTable(dataInTableForm)
 
-	dataInTableForm = PreSortActions(config, dataInTableForm)
-
-	//SORTING
-
-	dataInTableForm = PostSortActions(config, dataInTableForm)
-	ShowDataTable(dataInTableForm)
-}
-
-func ShowDataTable(data [][]string) {
-	for _, line := range data {
-		for _, val := range line {
-			fmt.Printf("%s ", val)
-		}
-		fmt.Print("\n")
-	}
+	sorted := SortTable(config, dataInTableForm)
+	ShowTable(sorted)
 }
 
 func RaiseErrorAndStop(err error) {
@@ -130,9 +119,57 @@ func SortTable(config sortConfig, data [][]string) [][]string {
 	data = PreSortActions(config, data)
 
 	//Main sorting
+	if config.isNumeric {
+		numericSort(data, config.column)
+	} else if config.isMonth {
+		monthNameSort(data, config.column)
+	} else {
+		stringSort(data, config.column)
+	}
 
 	data = PostSortActions(config, data)
 	return data
+}
+
+func stringSort(data [][]string, column int) {
+	sort.Slice(data, func(i, j int) bool {
+		a, b := data[i][column], data[j][column]
+		return a < b
+	})
+}
+
+func numericSort(data [][]string, column int) {
+	sort.Slice(data, func(i, j int) bool {
+		a, errA := strconv.Atoi(data[i][column])
+		b, errB := strconv.Atoi(data[i][column])
+		if errA != nil || errB != nil {
+			fmt.Fprintf(os.Stderr, "error parsing data to ints %v, %v (column %d)", errA, errB, column)
+		}
+		return a < b
+	})
+}
+
+func monthNameSort(data [][]string, column int) {
+	sort.Slice(data, func(i, j int) bool {
+		a, errA := monthToNumber(data[i][column])
+		b, errB := monthToNumber(data[i][column])
+		if errA != nil || errB != nil {
+			fmt.Fprintf(os.Stderr, "error parsing data to ints %v, %v (column %d)", errA, errB, column)
+		}
+		return a < b
+	})
+}
+
+func monthToNumber(monthName string) (int, error) {
+	months := map[string]int{
+		"jan": 1, "feb": 2, "mar": 3, "apr": 4,
+		"may": 5, "jun": 6, "jul": 7, "aug": 8,
+		"sep": 9, "oct": 10, "nov": 11, "dec": 12,
+	}
+	if num, exists := months[strings.ToLower(monthName)]; exists {
+		return num, nil
+	}
+	return 0, errors.New("unsupported month name, please use short month names(3 letter)")
 }
 
 func PostSortActions(config sortConfig, data [][]string) [][]string {
@@ -183,10 +220,9 @@ func suffixConversion(data [][]string, column int) [][]string {
 
 func trimTrailingBlanks(data [][]string) [][]string {
 	result := make([][]string, 0)
-	for _, lines := range data {
-		line := make([]string, 0)
-		for _, val := range lines {
-			line = append(lines, strings.TrimRightFunc(val, unicode.IsSpace))
+	for _, line := range data {
+		for _, val := range line {
+			line = append(line, strings.TrimRightFunc(val, unicode.IsSpace))
 		}
 		result = append(result, line)
 	}
@@ -221,4 +257,13 @@ func GenerateSequence(minElements, maxElements int) []string {
 		TODO: Сгенерить инфу: id, datetime, month, word, word with trailing blanks, suffix, float64 value
 	*/
 	return result
+}
+
+func ShowTable(data [][]string) {
+	for _, line := range data {
+		for _, val := range line {
+			fmt.Print(val)
+		}
+		fmt.Println()
+	}
 }
