@@ -39,14 +39,13 @@ import (
 	"os"
 	"regexp"
 	"strconv"
-	"strings"
 	"unicode"
 )
 
 func main() {
-	str := generateSequence(10, 20, true)
+	str := generateSequence(10, 20)
 	fmt.Println(str)
-	unpacked, err := unpackSequenceV2(str)
+	unpacked, err := UnpackSequenceV2(str)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
@@ -55,8 +54,8 @@ func main() {
 	fmt.Println(unpacked)
 }
 
-//Не может собрать цифру из нескольких рун :(
-func unpackSequence(str string) (string, error) {
+// Не может собрать цифру из нескольких рун ("a45" → aaaaa) Depricated оставил как часть истории
+/*func unpackSequence(str string) (string, error) {
 	if str == "" {
 		return "", nil
 	}
@@ -67,7 +66,7 @@ func unpackSequence(str string) (string, error) {
 		return "", errors.New("String contains only digits. String must contain either escape sequence (`\\`) with digits or alphanumeric chars")
 	}
 	if alphabetOnly.MatchString(str) {
-		return  str, nil
+		return str, nil
 	}
 
 	var sb strings.Builder
@@ -79,7 +78,7 @@ func unpackSequence(str string) (string, error) {
 			prevRune = v
 			continue
 		}
-		if v =='\\' && prevRune =='\\'{
+		if v == '\\' && prevRune == '\\' {
 			sb.WriteRune(v)
 			prevRune = 0
 			continue
@@ -95,8 +94,8 @@ func unpackSequence(str string) (string, error) {
 			continue
 		}
 		if unicode.IsDigit(v) && prevRune != '\\' {
-			sb.Grow(int(v - '0')-1)
-			for range int(v - '0')-1 {
+			sb.Grow(int(v-'0') - 1)
+			for range int(v-'0') - 1 {
 				sb.WriteRune(prevRune)
 			}
 			prevRune = 0
@@ -104,10 +103,10 @@ func unpackSequence(str string) (string, error) {
 		}
 	}
 	return sb.String(), nil
-}
+}*/
 
-//По ощущениям работает медленнее, но может обработать многосимвольное число
-func unpackSequenceV2(str string) (string, error) {
+// Улучшенаая версия ("a45" → aaaaaaaa...)
+func UnpackSequenceV2(str string) (string, error) {
 	if str == "" {
 		return "", nil
 	}
@@ -116,10 +115,10 @@ func unpackSequenceV2(str string) (string, error) {
 	digitOnly := regexp.MustCompile(`^\d+$`)
 
 	if digitOnly.MatchString(str) {
-		return "", errors.New("String contains only digits. String must contain either escape sequence (`\\`) with digits or alphanumeric chars")
+		return "", errors.New("string contains only digits. String must contain either escape sequence (`\\`) with digits or alphanumeric chars")
 	}
 	if alphabetOnly.MatchString(str) {
-		return  str, nil
+		return str, nil
 	}
 
 	runes := []rune(str)
@@ -132,7 +131,7 @@ func unpackSequenceV2(str string) (string, error) {
 
 		//Некорректный случай первой цифры
 		if i == 0 && unicode.IsDigit(current) {
-			return "", errors.New("String can't start with a digit")
+			return "", errors.New("string can't start with a digit")
 		}
 
 		//Обработкаэкранирования и случая \ в конце строки
@@ -143,7 +142,7 @@ func unpackSequenceV2(str string) (string, error) {
 				if unicode.IsDigit(current) {
 					digitCanEscape = true
 				}
-				
+
 			} else {
 				return "", errors.New("'\\' - single escape sequence can't be the last symbol in a string")
 			}
@@ -151,8 +150,8 @@ func unpackSequenceV2(str string) (string, error) {
 
 		if !unicode.IsDigit(current) || (unicode.IsDigit(current) && digitCanEscape) {
 			//Обработка многосимвольного числа!!!
-			if i + 1 < len(runes) && unicode.IsDigit(runes[i+1]) {
-				j := i+1
+			if i+1 < len(runes) && unicode.IsDigit(runes[i+1]) {
+				j := i + 1
 				for j < len(runes) && unicode.IsDigit(runes[j]) {
 					j++
 				}
@@ -162,13 +161,13 @@ func unpackSequenceV2(str string) (string, error) {
 					return "", err
 				}
 				if number != 1 {
-					for k := 0; k<number; k++ {
+					for k := 0; k < number; k++ {
 						result = append(result, current)
 					}
 				} else {
 					result = append(result, current)
 				}
-				i=j
+				i = j
 			} else {
 				result = append(result, current)
 				i++
@@ -180,16 +179,12 @@ func unpackSequenceV2(str string) (string, error) {
 			digitCanEscape = false
 		}
 	}
-	return  string(result), nil
+	return string(result), nil
 }
 
-func generateSequence(minElements, maxElements int, shorter bool) string {
-	const unicodeChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+{}[]|;:'\"\\,.<>/?`~🥺😂🥰😊😍😝🤗"
+func generateSequence(minElements, maxElements int) string {
 	const shorterChars = "abcdefghijklmnopqrstuvwxyz\\123456789"
-	ancientTexts := []rune(unicodeChars)
-	if shorter {
-		ancientTexts = []rune(shorterChars)
-	}
+	ancientTexts := []rune(shorterChars)
 	var result []rune
 	for i := 0; i <= minElements+rand.Intn(maxElements-minElements+1); i++ {
 		result = append(result, ancientTexts[rand.Intn(len(ancientTexts)-1)])
